@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-bg: var(--primary-bg);
+  --color-secondary-bg: var(--secondary-bg);
+  --color-primary-text: var(--primary-text);
+  --color-brand-green: #50c878;
+  --color-brand-green-dark: #3ba05c;
+  --color-brand-black: var(--primary-bg);
+  --color-brand-gray: var(--secondary-bg);
+}
+
+@layer base {
+  :root {
+    --primary-bg: #050505;
+    --secondary-bg: #000000;
+    --primary-text: #ffffff;
+    --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+  }
+
+  :root[data-theme="light"] {
+    --primary-bg: #f9fafb;
+    --secondary-bg: #ffffff;
+    --primary-text: #000000;
+    --scrollbar-thumb: rgba(0, 0, 0, 0.1);
+    --scrollbar-thumb-hover: rgba(0, 0, 0, 0.2);
+  }
+
+  :root[data-theme="dark"] {
+    --primary-bg: #050505;
+    --secondary-bg: #000000;
+    --primary-text: #ffffff;
+    --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+  }
+
+  body {
+    @apply bg-primary-bg text-primary-text font-sans antialiased overflow-hidden transition-colors duration-200;
+  }
+}
+
+.glass-panel {
+  @apply bg-primary-text/5 backdrop-blur-md border border-primary-text/10 rounded-2xl shadow-xl transition-colors duration-200;
+}
+
+.glass-input {
+  @apply bg-primary-text/5 border border-primary-text/10 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green transition-all outline-none text-primary-text w-full placeholder-primary-text/40;
+}
+
+.btn-primary {
+  @apply bg-brand-green hover:bg-brand-green-dark text-[#050505] font-semibold py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2;
+}
+
+.btn-secondary {
+  @apply bg-primary-text/10 hover:bg-primary-text/20 text-primary-text font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}

@@ -1,0 +1,161 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "A system user",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "designer", "marketer", "sales", "finance"] },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["email", "role", "createdAt", "updatedAt"]
+    },
+    "client": {
+      "title": "Client",
+      "description": "A client in the CRM",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "company": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "status": { "type": "string" },
+        "onboardingData": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["name", "status", "createdAt", "updatedAt", "createdBy"]
+    },
+    "task": {
+      "title": "Task",
+      "description": "A task assigned to a team member",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "clientId": { "type": "string" },
+        "assigneeId": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "status": { "type": "string", "enum": ["todo", "in_progress", "completed", "rejected"] },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] },
+        "deadline": { "type": "number" },
+        "department": { "type": "string", "enum": ["design", "marketing"] },
+        "attachments": { "type": "array" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "status", "priority", "department", "createdAt", "updatedAt", "creatorId"]
+    },
+    "deal": {
+      "title": "Deal",
+      "description": "Sales deal pipeline item",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "clientId": { "type": "string" },
+        "value": { "type": "number" },
+        "stage": { "type": "string", "enum": ["lead", "negotiation", "closed_won", "closed_lost"] },
+        "creatorId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["title", "clientId", "value", "stage", "creatorId", "createdAt", "updatedAt"]
+    },
+    "transaction": {
+      "title": "Transaction",
+      "description": "Financial transaction",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["income", "expense"] },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "clientId": { "type": "string" },
+        "date": { "type": "number" },
+        "creatorId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["type", "amount", "description", "date", "creatorId", "createdAt", "updatedAt"]
+    },
+    "message": {
+      "title": "Message",
+      "description": "Chat message",
+      "type": "object",
+      "properties": {
+        "channelId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["channelId", "senderId", "text", "createdAt"]
+    },
+    "notification": {
+      "title": "Notification",
+      "description": "User notification",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "link": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "title", "read", "createdAt"]
+    },
+    "activity": {
+      "title": "Activity",
+      "description": "System activity log",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "target": { "type": "string" },
+        "type": { "type": "string", "enum": ["system", "user", "task", "communication", "finance"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "userName", "action", "type", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/user" },
+      "description": "User profiles"
+    },
+    "/activities/{activityId}": {
+      "schema": { "$ref": "#/entities/activity" },
+      "description": "System activity logs"
+    },
+    "/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/client" },
+      "description": "CRM Clients"
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/task" },
+      "description": "Project tasks"
+    },
+    "/deals/{dealId}": {
+      "schema": { "$ref": "#/entities/deal" },
+      "description": "Sales pipeline deals"
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/transaction" },
+      "description": "Financial records"
+    },
+    "/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/message" },
+      "description": "Chat messages (global and channels mapped by channelId)"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/notification" },
+      "description": "User notifications"
+    }
+  }
+}

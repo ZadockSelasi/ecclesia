@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function getUserRole(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'zadockselasi7@gmail.com' || 
+        getUserRole(request.auth.uid) == 'admin'
+      );
+    }
+
+    // Role Checks
+    // For prototype purposes, let's allow all authenticated verified users to do most things, 
+    // or specifically check their roles.
+    function hasRole(role) {
+      return isAdmin() || getUserRole(request.auth.uid) == role;
+    }
+
+    // Since users may not be verified in local dev, let's relax email_verified for the prototype
+    function isAuth() {
+      return request.auth != null;
+    }
+    
+    function isSystemAdmin() {
+      return isAuth() && (
+        request.auth.token.email == 'zadockselasi7@gmail.com' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow get: if isAuth();
+      allow list: if isAuth(); // For team directory
+      allow create: if isAuth() && request.auth.uid == userId; // Let users create their profile
+      allow update: if isAuth() && (request.auth.uid == userId || isSystemAdmin());
+      allow delete: if isSystemAdmin();
+    }
+
+    // Clients Collection
+    match /clients/{clientId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && incoming().createdBy == request.auth.uid;
+      allow update: if isAuth();
+      allow delete: if isSystemAdmin();
+    }
+
+    // Tasks Collection
+    match /tasks/{taskId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && incoming().creatorId == request.auth.uid;
+      allow update: if isAuth();
+      allow delete: if isSystemAdmin();
+    }
+
+    // Deals Collection
+    match /deals/{dealId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && incoming().creatorId == request.auth.uid;
+      allow update: if isAuth();
+      allow delete: if isSystemAdmin();
+    }
+
+    // Transactions Collection
+    match /transactions/{transactionId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && incoming().creatorId == request.auth.uid;
+      allow update: if isAuth() && isSystemAdmin(); 
+      allow delete: if isSystemAdmin();
+    }
+
+    // Messages Collection
+    match /messages/{messageId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && incoming().senderId == request.auth.uid;
+      allow update: if isAuth() && request.auth.uid == existing().senderId;
+      allow delete: if isSystemAdmin() || (isAuth() && request.auth.uid == existing().senderId);
+    }
+
+    // Notifications Collection
+    match /notifications/{notificationId} {
+      allow read: if isAuth() && existing().userId == request.auth.uid;
+      allow create: if isAuth(); 
+      allow update: if isAuth() && request.auth.uid == existing().userId;
+      allow delete: if isAuth() && request.auth.uid == existing().userId;
+    }
+
+    // Activities Collection
+    match /activities/{activityId} {
+      allow read: if isAuth(); // Accessible to all for the dashboard live feed
+      allow create: if isAuth(); // Allow all users to log their activities
+      allow update: if false; // Activities are append-only
+      allow delete: if isSystemAdmin(); // Admin can wipe activities during system reset
+    }
+  }
+}
