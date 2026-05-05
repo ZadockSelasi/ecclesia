@@ -3,7 +3,17 @@ import { MessageSquarePlus, X, Send, Bot, Zap } from "lucide-react";
 import { clsx } from "clsx";
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiClient: GoogleGenAI | null = null;
+function getAIClient() {
+  if (!aiClient) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      throw new Error("GEMINI_API_KEY is not set. Please add it to your environment variables.");
+    }
+    aiClient = new GoogleGenAI({ apiKey: key });
+  }
+  return aiClient;
+}
 
 interface Message {
   id: string;
@@ -48,6 +58,7 @@ export default function AIChatbot() {
         .join("\n");
       historyText += `\nUser: ${userMessage.content}\nAssistant:`;
 
+      const ai = getAIClient();
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: [
