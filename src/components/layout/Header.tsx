@@ -2,13 +2,15 @@ import { useStore } from "../../hooks/useStore";
 import { Bell, ChevronDown, Menu } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { db } from "../../lib/firebase";
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
-  const { appUser } = useStore();
+  const { appUser, hasNotification, setHasNotification } = useStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -25,6 +27,36 @@ export default function Header({ onMenuClick }: HeaderProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!appUser?.uid) return;
+    
+    const lastSeenStr = localStorage.getItem("lastSeenMessagesTime");
+    let lastSeenTime = lastSeenStr ? parseInt(lastSeenStr) : Date.now();
+
+    const q = query(
+      collection(db, "messages"),
+      orderBy("createdAt", "desc"),
+      limit(1)
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      snap.forEach((doc) => {
+        const data = doc.data();
+        if (data.senderId !== appUser.uid && data.createdAt > lastSeenTime) {
+          setHasNotification(true);
+        }
+      });
+    });
+
+    return () => unsub();
+  }, [appUser?.uid]);
+
+  const handleNotificationsClick = () => {
+    setHasNotification(false);
+    localStorage.setItem("lastSeenMessagesTime", Date.now().toString());
+    navigate("/chat");
+  };
 
   const workspaces = [
     { name: "Designer View", path: "/designer" },
@@ -74,9 +106,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-6">
-        <button className="text-primary-text/60 hover:text-primary-text transition-colors relative">
+        <button 
+          onClick={handleNotificationsClick}
+          className="text-primary-text/60 hover:text-primary-text transition-colors relative"
+        >
           <Bell size={20} />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-brand-green rounded-full"></span>
+          {hasNotification && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-brand-black"></span>
+          )}
         </button>
         <div className="flex items-center gap-3 pl-6 border-l border-primary-text/10">
           <div className="text-right hidden sm:block">

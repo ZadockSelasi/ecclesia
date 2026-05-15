@@ -25,7 +25,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { appUser, theme, setTheme } = useStore();
+  const { appUser, theme, setTheme, hasNotification } = useStore();
 
   const handleLogout = async () => {
     const { logActivity } = await import("../../lib/activity");
@@ -137,7 +137,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               }`
             }
           >
-            <item.icon size={18} />
+            <div className="relative">
+              <item.icon size={18} />
+              {item.to === "/chat" && hasNotification && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-primary-bg"></span>
+              )}
+            </div>
             {item.label}
           </NavLink>
         ))}

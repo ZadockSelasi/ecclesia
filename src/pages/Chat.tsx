@@ -21,7 +21,7 @@ interface Message {
 }
 
 export default function Chat() {
-  const { appUser } = useStore();
+  const { appUser, setHasNotification } = useStore();
   const [msg, setMsg] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [users, setUsers] = useState<Record<string, any>>({});
@@ -33,6 +33,10 @@ export default function Chat() {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Clear notifications when entering Chat
+    setHasNotification(false);
+    localStorage.setItem("lastSeenMessagesTime", Date.now().toString());
+    
     const unsubUsers = onSnapshot(
       collection(db, "users"),
       (snap) => {
@@ -164,57 +168,82 @@ export default function Chat() {
         <div className="p-2 space-y-1 overflow-y-auto max-h-[200px]">
           {Object.values(users)
             .filter((u: any) => u.uid !== appUser?.uid)
-            .map((usr: any) => (
-              <button
-                key={usr.uid}
-                onClick={() => {
-                  setIsDM(true);
-                  setDmUser(usr);
-                  setActiveChannel("");
-                }}
-                className={clsx(
-                  "w-full text-left px-3 py-2 text-sm rounded-md flex items-center gap-2 transition-colors",
-                  isDM && dmUser?.uid === usr.uid
-                    ? "bg-brand-green/10 text-brand-green font-medium"
-                    : "text-primary-text/60 hover:text-primary-text hover:bg-primary-text/5",
-                )}
-              >
-                <span className="w-2 h-2 rounded-full bg-brand-green"></span>{" "}
-                {usr.displayName}
-              </button>
-            ))}
+            .map((usr: any) => {
+              const online = usr.isOnline && (Date.now() - (usr.lastActive || 0) < 120000);
+              return (
+                <button
+                  key={usr.uid}
+                  onClick={() => {
+                    setIsDM(true);
+                    setDmUser(usr);
+                    setActiveChannel("");
+                  }}
+                  className={clsx(
+                    "w-full text-left px-3 py-2 text-sm rounded-md flex items-center justify-between transition-colors",
+                    isDM && dmUser?.uid === usr.uid
+                      ? "bg-brand-green/10 text-brand-green font-medium"
+                      : "text-primary-text/60 hover:text-primary-text hover:bg-primary-text/5",
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <span 
+                      className={clsx(
+                        "w-2 h-2 rounded-full",
+                        online ? "bg-brand-green shadow-[0_0_8px_rgba(20,184,101,0.8)]" : "bg-primary-text/20"
+                      )}
+                    ></span>{" "}
+                    {usr.displayName}
+                  </div>
+                  {online && <span className="text-[10px] uppercase font-bold text-brand-green">Online</span>}
+                </button>
+              );
+            })}
         </div>
       </div>
 
       {/* Main Chat Area */}
       <div className="flex-1 glass-panel flex flex-col border-primary-text/5">
         <div className="p-4 border-b border-primary-text/5 bg-primary-text/5 flex items-center gap-3">
-          {isDM ? (
+          {isDM ? (() => {
+            const currentDmUser = users[dmUser?.uid] || dmUser;
+            const online = currentDmUser?.isOnline && (Date.now() - (currentDmUser?.lastActive || 0) < 120000);
+            return (
             <>
               <div className="relative">
                 <div className="w-10 h-10 rounded-xl bg-brand-green/20 overflow-hidden flex items-center justify-center shrink-0 border border-brand-green/30">
-                  {dmUser?.photoURL ? (
+                  {currentDmUser?.photoURL ? (
                     <img
-                      src={dmUser.photoURL}
+                      src={currentDmUser.photoURL}
                       alt=""
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <span className="text-brand-green font-bold flex items-center justify-center h-full w-full">
-                      {dmUser?.displayName?.[0] || "?"}
+                      {currentDmUser?.displayName?.[0] || "?"}
                     </span>
                   )}
                 </div>
-                <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-brand-green border-2 border-secondary-bg rounded-full"></span>
+                <span 
+                  className={clsx(
+                    "absolute -bottom-1 -right-1 w-3 h-3 border-2 border-secondary-bg rounded-full",
+                    online ? "bg-brand-green shadow-[0_0_8px_rgba(20,184,101,0.8)]" : "bg-primary-text/20"
+                  )}
+                ></span>
               </div>
               <div>
-                <h2 className="font-semibold">{dmUser?.displayName}</h2>
+                <h2 className="font-semibold flex items-center gap-2">
+                  {currentDmUser?.displayName}
+                  <span className={clsx(
+                    "text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-full",
+                    online ? "bg-brand-green/10 text-brand-green" : "bg-primary-text/10 text-primary-text/40"
+                  )}>{online ? "Online" : "Offline"}</span>
+                </h2>
                 <p className="text-xs text-primary-text/40 capitalize">
-                  {dmUser?.role || "Team Member"}
+                  {currentDmUser?.role || "Team Member"}
                 </p>
               </div>
             </>
-          ) : (
+          );})() : (
             <>
               <Hash size={20} className="text-brand-green" />
               <div>

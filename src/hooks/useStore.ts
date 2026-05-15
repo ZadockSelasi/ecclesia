@@ -19,6 +19,8 @@ export interface AppUser {
   photoURL: string;
   role: UserRole;
   createdAt: number;
+  isOnline?: boolean;
+  lastActive?: number;
 }
 
 interface AppState {
@@ -30,6 +32,8 @@ interface AppState {
   setAppUser: (user: AppUser | null) => void;
   setLoading: (loading: boolean) => void;
   setTheme: (theme: ThemeMode) => void;
+  hasNotification: boolean;
+  setHasNotification: (v: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -37,6 +41,8 @@ export const useStore = create<AppState>((set) => ({
   appUser: null,
   loading: true,
   theme: (localStorage.getItem("theme") as ThemeMode) || "system",
+  hasNotification: false,
+  setHasNotification: (hasNotification) => set({ hasNotification }),
   setCurrentUser: (user) => set({ currentUser: user }),
   setAppUser: (user) => set({ appUser: user }),
   setLoading: (loading) => set({ loading }),
