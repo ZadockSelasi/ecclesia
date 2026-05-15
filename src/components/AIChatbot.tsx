@@ -103,7 +103,7 @@ export default function AIChatbot() {
       <button
         onClick={() => setIsOpen(true)}
         className={clsx(
-          "fixed bottom-6 right-6 w-14 h-14 bg-brand-green rounded-full shadow-lg shadow-brand-green/20 flex items-center justify-center text-black hover:bg-brand-green-dark transition-all z-50",
+          "fixed bottom-4 right-4 md:bottom-6 md:right-6 w-14 h-14 bg-brand-green rounded-full shadow-lg shadow-brand-green/20 flex items-center justify-center text-black hover:bg-brand-green-dark transition-all z-50",
           isOpen ? "scale-0" : "scale-100",
         )}
       >
@@ -113,7 +113,7 @@ export default function AIChatbot() {
       {/* Chat Window */}
       <div
         className={clsx(
-          "fixed bottom-6 right-6 w-[380px] h-[600px] max-h-[80vh] flex flex-col bg-secondary-bg border border-primary-text/10 rounded-2xl shadow-2xl z-50 transition-all duration-300 origin-bottom-right transform",
+          "fixed bottom-4 right-4 md:bottom-6 md:right-6 w-[calc(100vw-32px)] sm:w-[380px] h-[600px] max-h-[80vh] flex flex-col bg-secondary-bg border border-primary-text/10 rounded-2xl shadow-2xl z-50 transition-all duration-300 origin-bottom-right transform",
           isOpen
             ? "scale-100 opacity-100"
             : "scale-95 opacity-0 pointer-events-none",

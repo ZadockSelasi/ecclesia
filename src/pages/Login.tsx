@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../lib/firebase";
 import { Hexagon } from "lucide-react";
@@ -6,12 +7,15 @@ import { useStore } from "../hooks/useStore";
 
 export default function Login() {
   const { currentUser } = useStore();
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleLogin = async () => {
     try {
+      setErrorMsg("");
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      setErrorMsg(error.message || "Failed to sign in. Please try opening the app in a new tab if you are seeing this inside AI Studio.");
     }
   };
 
@@ -50,6 +54,10 @@ export default function Login() {
         >
           <span>Sign In with Google</span>
         </button>
+
+        {errorMsg && (
+          <p className="mt-4 text-xs text-red-500 text-center max-w-xs">{errorMsg}</p>
+        )}
       </div>
     </div>
   );

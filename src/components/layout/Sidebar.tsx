@@ -14,11 +14,17 @@ import {
   Monitor,
   Palette,
   Megaphone,
+  X,
 } from "lucide-react";
 import { auth } from "../../lib/firebase";
 import { signOut } from "firebase/auth";
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { appUser, theme, setTheme } = useStore();
 
   const handleLogout = async () => {
@@ -85,8 +91,14 @@ export default function Sidebar() {
     }));
 
   return (
-    <aside className="w-64 bg-primary-bg border-r border-primary-text/10 flex flex-col shrink-0">
-      <div className="h-16 flex items-center px-6 border-b border-primary-text/10 overflow-hidden">
+    <aside 
+      className={`
+        fixed inset-y-0 left-0 z-40 bg-primary-bg border-r border-primary-text/10 flex flex-col w-64 shrink-0 transition-transform duration-300 ease-in-out
+        md:static md:translate-x-0
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
+    >
+      <div className="h-16 flex items-center justify-between px-6 border-b border-primary-text/10 overflow-hidden">
         <div className="flex items-center gap-2 text-brand-green font-bold text-lg tracking-wider">
           {/* Logo placeholder - upload logo.png to the public folder */}
           <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-brand-green/20">
@@ -103,6 +115,12 @@ export default function Sidebar() {
           </div>
           <span className="truncate">Ecclesiabranx</span>
         </div>
+        <button 
+          onClick={onClose}
+          className="md:hidden text-primary-text/60 hover:text-primary-text"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <nav className="flex-1 py-6 px-3 flex flex-col gap-2">
@@ -110,6 +128,7 @@ export default function Sidebar() {
           <NavLink
             key={item.to}
             to={item.to}
+            onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
                 isActive

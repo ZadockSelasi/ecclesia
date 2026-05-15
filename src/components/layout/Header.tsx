@@ -1,9 +1,13 @@
 import { useStore } from "../../hooks/useStore";
-import { Bell, ChevronDown } from "lucide-react";
+import { Bell, ChevronDown, Menu } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Header() {
+interface HeaderProps {
+  onMenuClick: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
   const { appUser } = useStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -32,13 +36,22 @@ export default function Header() {
   return (
     <header className="h-16 border-b border-primary-text/10 bg-brand-black flex items-center justify-between px-4 md:px-8 shrink-0">
       <div className="flex items-center gap-4">
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden p-2 -ml-2 text-primary-text/60 hover:text-primary-text hover:bg-primary-text/5 rounded-lg transition-colors"
+        >
+          <Menu size={24} />
+        </button>
+
         {appUser?.role === "admin" && (
           <div className="relative z-50" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 text-sm font-medium bg-primary-text/5 hover:bg-primary-text/10 px-3 py-1.5 rounded-lg border border-primary-text/10 transition-colors"
             >
-              Switch Workspace <ChevronDown size={14} />
+              <span className="hidden sm:inline">Switch Workspace</span>
+              <span className="sm:hidden">Workspace</span>
+              <ChevronDown size={14} />
             </button>
             {dropdownOpen && (
               <div className="absolute top-full left-0 mt-2 w-48 bg-primary-bg border border-primary-text/10 rounded-xl shadow-xl overflow-hidden py-1">

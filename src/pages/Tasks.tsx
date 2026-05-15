@@ -149,7 +149,7 @@ export default function Tasks() {
                           <div className="relative">
                             <button 
                               onClick={() => setOpenMenuId(openMenuId === task.id ? null : task.id)}
-                              className="text-primary-text/20 hover:text-primary-text opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="text-primary-text/40 hover:text-primary-text md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                             >
                               <MoreHorizontal size={16} />
                             </button>
