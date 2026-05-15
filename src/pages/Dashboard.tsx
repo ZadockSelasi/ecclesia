@@ -17,7 +17,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "../lib/utils";
 
 interface ActivityLog {
   id: string;
@@ -240,9 +240,7 @@ export default function Dashboard() {
                     </p>
                     <p className="text-xs text-brand-green mt-0.5">
                       {feed.createdAt
-                        ? formatDistanceToNow(feed.createdAt, {
-                            addSuffix: true,
-                          })
+                        ? formatTimeAgo(feed.createdAt)
                         : ""}
                     </p>
                   </div>

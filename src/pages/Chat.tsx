@@ -11,7 +11,7 @@ import {
   addDoc,
 } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "../lib/utils";
 
 interface Message {
   id: string;
@@ -279,9 +279,7 @@ export default function Chat() {
                       </span>
                       <span className="text-xs text-primary-text/40 ml-2">
                         {m.createdAt
-                          ? formatDistanceToNow(m.createdAt, {
-                              addSuffix: true,
-                            })
+                          ? formatTimeAgo(m.createdAt)
                           : ""}
                       </span>
                     </div>

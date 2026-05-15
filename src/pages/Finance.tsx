@@ -9,7 +9,7 @@ import {
 import { clsx } from "clsx";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "../lib/utils";
 
 interface Transaction {
   id: string;
@@ -45,6 +45,23 @@ export default function Finance() {
     return () => unsubscribe();
   }, []);
 
+  const handleExport = () => {
+    const headers = ["ID", "Type", "Amount", "Description", "Date"];
+    const csvContent = [
+      headers.join(","),
+      ...transactions.map(t => [t.id, t.type, t.amount, `"${t.description.replace(/"/g, '""')}"`, t.date ? new Date(t.date).toLocaleString() : ""].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "financial_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const totalIncome = transactions
     .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + t.amount, 0);
@@ -64,7 +81,7 @@ export default function Finance() {
             Track revenue, expenses, and pending payments.
           </p>
         </div>
-        <button className="btn-secondary text-sm py-2">
+        <button onClick={handleExport} className="btn-secondary text-sm py-2">
           <Download size={16} /> Export Report
         </button>
       </div>
@@ -153,7 +170,7 @@ export default function Finance() {
                     <p className="font-medium">{t.description}</p>
                     <p className="text-xs text-primary-text/40 mt-0.5">
                       {t.date
-                        ? formatDistanceToNow(t.date, { addSuffix: true })
+                        ? formatTimeAgo(t.date)
                         : ""}
                     </p>
                   </div>

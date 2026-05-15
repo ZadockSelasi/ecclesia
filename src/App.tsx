@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import {
   auth,
   db,
@@ -52,37 +52,44 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    let unsubProfile: () => void;
+
     const unsub = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
         try {
           const userRef = doc(db, "users", user.uid);
-          const userSnap = await getDoc(userRef);
-
-          if (userSnap.exists()) {
-            const data = userSnap.data() as AppUser;
-            setAppUser(data);
-            // Log session start if they were missing or recently reloaded
-            const currentAppUser = useStore.getState().appUser;
-            if (!currentAppUser?.uid || currentAppUser.uid !== user.uid) {
-              import("./lib/activity").then(({ logActivity }) => {
-                logActivity("logged into the system", "user");
-              });
+          // Use onSnapshot to keep appUser in sync automatically
+          unsubProfile = onSnapshot(userRef, (userSnap) => {
+            if (userSnap.exists()) {
+              const data = userSnap.data() as AppUser;
+              setAppUser(data);
+            } else {
+              setAppUser(null);
             }
-          } else {
-            // User needs to onboard
-            setAppUser(null);
-          }
+            if (useStore.getState().loading) {
+               setLoading(false);
+            }
+          });
+          
+          import("./lib/activity").then(({ logActivity }) => {
+             logActivity("logged into the system", "user");
+          });
+
         } catch (error) {
           console.error("Error fetching user profile", error);
+          setLoading(false);
         }
       } else {
         setAppUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsub();
+    return () => {
+      unsub();
+      if (unsubProfile) unsubProfile();
+    };
   }, []);
 
   return (

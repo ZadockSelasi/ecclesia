@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Plus, Search, Filter, Loader2 } from "lucide-react";
 import { collection, query, onSnapshot } from "firebase/firestore";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "../lib/utils";
+import { LeadModal } from "../components/modals/LeadModal";
 
 interface Deal {
   id: string;
@@ -23,6 +24,7 @@ export default function Sales() {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [clients, setClients] = useState<Record<string, ExternalClient>>({});
   const [loading, setLoading] = useState(true);
+  const [showLeadModal, setShowLeadModal] = useState(false);
 
   useEffect(() => {
     // Fetch clients
@@ -84,7 +86,7 @@ export default function Sales() {
               className="glass-input pl-10 text-sm py-2"
             />
           </div>
-          <button className="btn-primary text-sm py-2">
+          <button onClick={() => setShowLeadModal(true)} className="btn-primary text-sm py-2">
             <Plus size={16} /> New Lead
           </button>
         </div>
@@ -149,9 +151,7 @@ export default function Sales() {
                         <td className="p-4">${deal.value?.toLocaleString()}</td>
                         <td className="p-4 text-primary-text/50">
                           {deal.createdAt
-                            ? formatDistanceToNow(deal.createdAt, {
-                                addSuffix: true,
-                              })
+                            ? formatTimeAgo(deal.createdAt)
                             : ""}
                         </td>
                         <td className="p-4 text-right">
@@ -168,6 +168,8 @@ export default function Sales() {
           )}
         </div>
       </div>
+      
+      {showLeadModal && <LeadModal onClose={() => setShowLeadModal(false)} />}
     </div>
   );
 }
